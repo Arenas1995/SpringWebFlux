@@ -1,7 +1,9 @@
 package com.spring.boot.webflux;
 
-import com.spring.boot.webflux.Documents.ProductoDocument;
-import com.spring.boot.webflux.repository.ProductoRepository;
+import com.spring.boot.webflux.documents.CategoriaDocument;
+import com.spring.boot.webflux.documents.ProductoDocument;
+import com.spring.boot.webflux.service.CategoriaService;
+import com.spring.boot.webflux.service.ProductoService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class WebfluxApplication implements CommandLineRunner {
 
-	private ProductoRepository productoRepository;
+	private ProductoService productoService;
+
+	private CategoriaService categoriaService;
 
 	private ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -32,12 +36,31 @@ public class WebfluxApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 
 		reactiveMongoTemplate.dropCollection("producto").subscribe();
+		reactiveMongoTemplate.dropCollection("categoria").subscribe();
 
-		Flux.just(new ProductoDocument(null, "TV", 10000.0, LocalDate.now()),
-				new ProductoDocument(null, "PC", 8000.0, LocalDate.now()),
-				new ProductoDocument(null, "MOUSE", 1000.0, LocalDate.now()),
-				new ProductoDocument(null, "TECLADO", 2000.0, LocalDate.now()))
-				.flatMap(producto -> productoRepository.save(producto))
-				.subscribe(producto -> LOG.info("Se inserto el producto: {}", producto));
+		CategoriaDocument categoriaDocument1 = new CategoriaDocument(null, "Tecnologia1");
+		CategoriaDocument categoriaDocument2 = new CategoriaDocument(null, "Tecnologia2");
+		CategoriaDocument categoriaDocument3 = new CategoriaDocument(null, "Tecnologia3");
+		CategoriaDocument categoriaDocument4 = new CategoriaDocument(null, "Tecnologia4");
+
+		Flux.just(categoriaDocument1, categoriaDocument2, categoriaDocument3, categoriaDocument4)
+				.flatMap(categoriaService::save)
+				.doOnNext(categoria -> LOG.info("Se inserto la categoria: {}", categoria))
+				.thenMany(
+						Flux.just(new ProductoDocument(null, "TV", 10000.0, LocalDate.now(),
+												categoriaDocument1),
+										new ProductoDocument(null, "PC", 8000.0, LocalDate.now(),
+												categoriaDocument2),
+										new ProductoDocument(null, "MOUSE", 1000.0, LocalDate.now(),
+												categoriaDocument3),
+										new ProductoDocument(null, "TECLADO", 2000.0, LocalDate.now(),
+												categoriaDocument4))
+								.flatMap(producto -> productoService.save(producto))
+								.doOnNext(producto -> LOG.info("Se inserto el producto: {}", producto))
+				)
+				.subscribe();
+
+
+
 	}
 }

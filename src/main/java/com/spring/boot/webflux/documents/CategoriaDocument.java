@@ -1,25 +1,19 @@
-package com.spring.boot.webflux.Documents;
+package com.spring.boot.webflux.documents;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDate;
-
-@Document(collection = "producto")
+@Document(collection = "categoria")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ProductoDocument {
+public class CategoriaDocument {
 
     @Id
     private String id;
 
     private String nombre;
-
-    private Double precio;
-
-    private LocalDate fecha;
 }
